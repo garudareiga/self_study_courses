@@ -3,6 +3,7 @@ package simpledb;
 import java.io.Serializable;
 import java.util.*;
 
+import org.hamcrest.core.IsInstanceOf;
 import org.hamcrest.internal.ArrayIterator;
 
 import com.sun.org.apache.bcel.internal.generic.IDIV;
@@ -214,23 +215,19 @@ public class TupleDesc implements Serializable {
     public boolean equals(Object o) {
         // some code goes here
         //return false;
-        if (o == null) {
-            return false;
-        }
-        if (!o.getClass().equals(this.getClass())) {
-            return false;
-        }
-        
-        TupleDesc t = (TupleDesc) o;
-        if (t.numFields() != numFields()) {
-            return false;
-        }
-        for (int i = 0; i < numFields(); i++) {
-            if (!t.getFieldType(i).equals(getFieldType(i))) {
+        if (o != null && o instanceof TupleDesc) {       
+            TupleDesc t = (TupleDesc) o;
+            if (t.numFields() != numFields()) {
                 return false;
             }
+            for (int i = 0; i < numFields(); i++) {
+                if (!t.getFieldType(i).equals(getFieldType(i))) {
+                    return false;
+                }   
+            }
+            return true;
         }
-        return true;
+        return false;
     }
 
     public int hashCode() {
