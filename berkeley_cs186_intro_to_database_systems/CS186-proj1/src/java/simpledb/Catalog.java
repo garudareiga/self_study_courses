@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 /**
@@ -15,13 +16,33 @@ import java.util.*;
  */
 
 public class Catalog {
-
+    HashMap<Integer, Table> tablesById;
+    HashMap<String, Table> tablesByName;
+    
+    class Table {
+        private DbFile  dbFile;
+        private String  name;
+        private String  primaryKey;
+        
+        Table(DbFile dbFile, String name, String primaryKey) {
+            this.dbFile = dbFile;
+            this.name = name;
+            this.primaryKey = primaryKey;
+        }
+        
+        DbFile getDbFile() { return dbFile; }
+        String getName() { return name; }
+        String getPrimaryKey() { return primaryKey; }
+    }
+    
     /**
      * Constructor.
      * Creates a new, empty catalog.
      */
     public Catalog() {
         // some code goes here
+        tablesById = new HashMap<Integer, Table>();
+        tablesByName = new HashMap<String, Table>();
     }
 
     /**
@@ -30,11 +51,15 @@ public class Catalog {
      * @param file the contents of the table to add;  file.getId() is the identfier of
      *    this file/tupledesc param for the calls getTupleDesc and getFile
      * @param name the name of the table -- may be an empty string.  May not be null.  If a name
+     *    conflict exists, use the last table to be added as the table for a given name.
      * @param pkeyField the name of the primary key field
-     * conflict exists, use the last table to be added as the table for a given name.
+     * 
      */
     public void addTable(DbFile file, String name, String pkeyField) {
         // some code goes here
+        Table table = new Table(file, name, pkeyField);
+        tablesById.put(file.getId(), table);
+        tablesByName.put(name, table);
     }
 
     public void addTable(DbFile file, String name) {
@@ -58,7 +83,11 @@ public class Catalog {
      */
     public int getTableId(String name) throws NoSuchElementException {
         // some code goes here
-        return 0;
+        if (tablesByName.containsKey(name)) {
+            return tablesByName.get(name).getDbFile().getId();
+        } else {
+            throw new NoSuchElementException();
+        }
     }
 
     /**
@@ -69,7 +98,12 @@ public class Catalog {
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+        //return null;
+        if (tablesById.containsKey(tableid)) {
+            return tablesById.get(tableid).getDbFile().getTupleDesc();
+        } else {
+            throw new NoSuchElementException();
+        }
     }
 
     /**
@@ -80,27 +114,41 @@ public class Catalog {
      */
     public DbFile getDbFile(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+        //return null;
+        if (tablesById.containsKey(tableid)) {
+            return tablesById.get(tableid).getDbFile();
+        } else {
+            throw new NoSuchElementException();
+        }
     }
 
-    public String getPrimaryKey(int tableid) {
+    public String getPrimaryKey(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+        //return null;
+        if (tablesById.containsKey(tableid)) {
+            return tablesById.get(tableid).getPrimaryKey();
+        } else {
+            throw new NoSuchElementException();
+        }       
     }
 
     public Iterator<Integer> tableIdIterator() {
         // some code goes here
-        return null;
+        //return null;
+        return tablesById.keySet().iterator();
     }
 
     public String getTableName(int id) {
         // some code goes here
-        return null;
+        //return null;
+        return tablesById.get(id).getName();
     }
     
     /** Delete all tables from the catalog */
     public void clear() {
         // some code goes here
+        tablesById.clear();
+        tablesByName.clear();
     }
     
     /**
