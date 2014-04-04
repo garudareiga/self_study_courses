@@ -25,14 +25,14 @@ public class HeapPage implements Page {
      * Create a HeapPage from a set of bytes of data read from disk.
      * The format of a HeapPage is a set of header bytes indicating
      * the slots of the page that are in use, some number of tuple slots.
-     *  Specifically, the number of tuples is equal to: <p>
-     *          floor((BufferPool.PAGE_SIZE*8) / (tuple size * 8 + 1))
-     * <p> where tuple size is the size of tuples in this
+     * Specifically, the number of tuples is equal to:
+     *      floor((BufferPool.PAGE_SIZE*8) / (tuple size * 8 + 1))
+     * where tuple size is the size of tuples in this
      * database table, which can be determined via {@link Catalog#getTupleDesc}.
      * The number of 8-bit header words is equal to:
-     * <p>
+     * 
      *      ceiling(no. tuple slots / 8)
-     * <p>
+     * 
      * @see Database#getCatalog
      * @see Catalog#getTupleDesc
      * @see BufferPool#PAGE_SIZE
@@ -66,8 +66,8 @@ public class HeapPage implements Page {
     */
     private int getNumTuples() {        
         // some code goes here
-        return 0;
-
+        //return 0;
+        return (int) Math.floor((BufferPool.PAGE_SIZE*8)/(td.getSize()*8 + 1));
     }
 
     /**
@@ -75,9 +75,9 @@ public class HeapPage implements Page {
      * @return the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      */
     private int getHeaderSize() {        
-        
         // some code goes here
-        return 0;
+        //return 0;
+        return (int) Math.ceil((double)getNumTuples()/8.0);
                  
     }
     
@@ -102,8 +102,9 @@ public class HeapPage implements Page {
      * @return the PageId associated with this page.
      */
     public HeapPageId getId() {
-    // some code goes here
-    throw new UnsupportedOperationException("implement this");
+        // some code goes here
+        //throw new UnsupportedOperationException("implement this");
+        return pid;
     }
 
     /**
@@ -273,7 +274,14 @@ public class HeapPage implements Page {
      */
     public int getNumEmptySlots() {
         // some code goes here
-        return 0;
+        //return 0;
+        int numEmptySlots = 0;
+        for (int i = 0; i < getNumTuples(); i++) {
+            if (isSlotUsed(i))
+                continue;
+            numEmptySlots++;
+        }
+        return numEmptySlots;
     }
 
     /**
@@ -281,7 +289,8 @@ public class HeapPage implements Page {
      */
     public boolean isSlotUsed(int i) {
         // some code goes here
-        return false;
+        //return false;
+        return (header[i/8] & 1<<(i%8)) != 0;
     }
 
     /**
@@ -298,7 +307,14 @@ public class HeapPage implements Page {
      */
     public Iterator<Tuple> iterator() {
         // some code goes here
-        return null;
+        //return null;
+        ArrayList<Tuple> tupleList = new ArrayList<Tuple>();
+        for (int i = 0; i < getNumTuples(); i++) {
+            if (isSlotUsed(i)) {
+                tupleList.add(tuples[i]);
+            }
+        }
+        return tupleList.iterator();
     }
 
 }

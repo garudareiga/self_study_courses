@@ -1,6 +1,7 @@
 package simpledb;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -12,6 +13,11 @@ import java.io.*;
  * locks to read/write the page.
  */
 public class BufferPool {
+    // Add by Ray
+    private int numPages;
+    private int maxNumPages;
+    private HashMap<PageId, Page> pages;
+    
     /** Bytes per page, including header. */
     public static final int PAGE_SIZE = 4096;
 
@@ -27,6 +33,9 @@ public class BufferPool {
      */
     public BufferPool(int numPages) {
         // some code goes here
+        numPages = 0;
+        maxNumPages = numPages;
+        pages = new HashMap<PageId, Page>(maxNumPages);
     }
 
     /**
@@ -47,7 +56,8 @@ public class BufferPool {
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
         // some code goes here
-        return null;
+        //return null;
+        return pages.get(pid);
     }
 
     /**
