@@ -1,0 +1,27 @@
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+// Ant Command
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+Command                             Description
+ant                                 Build the default target
+ant -projecthelp                    List all the targets in build.xml with descriptions
+ant dist                            Compile the code in src and package it in dist/simpledb.jar
+ant test                            Compile and run all the unit tests
+ant runtest -Dtest=testname         Run the unit test named testname
+ant systemtest                      Compile and run all the system tests
+ant runsystest -Dtest=testname      Compile and run the system test named testname.
+ant handin                          Generate tarball for submission
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+// Jar SeqScanTest
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+1. Create SeqScanTest.txt in the data directory
+2. Convert SeqScanTest.txt to SeqScanTest.data 
+   $ java -jar dist/simpledb.jar convert SeqScanTest.txt 3
+3. Create the file SeqScanTest.java in the src/java/simpledb package. 
+4. Comples
+   $ ant
+5. Run the test case 
+   $ java -classpath dist/simpledb.jar simpledb.test
