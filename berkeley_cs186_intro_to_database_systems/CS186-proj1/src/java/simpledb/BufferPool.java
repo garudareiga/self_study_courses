@@ -14,9 +14,8 @@ import java.util.*;
  */
 public class BufferPool {
     // Add by Ray
-    private int numPages;
-    private int maxNumPages;
-    private HashMap<PageId, Page> pages;
+    private int numPages = DEFAULT_PAGES;
+    private HashMap<PageId, Page> pages = new HashMap<PageId, Page>();
     
     /** Bytes per page, including header. */
     public static final int PAGE_SIZE = 4096;
@@ -33,9 +32,7 @@ public class BufferPool {
      */
     public BufferPool(int numPages) {
         // some code goes here
-        numPages = 0;
-        maxNumPages = numPages;
-        pages = new HashMap<PageId, Page>(maxNumPages);
+        this.numPages = numPages;
     }
 
     /**
@@ -57,7 +54,18 @@ public class BufferPool {
         throws TransactionAbortedException, DbException {
         // some code goes here
         //return null;
-        return pages.get(pid);
+        if (pages.containsKey(pid)) {
+            return pages.get(pid);
+        } else {
+            DbFile dbFile = Database.getCatalog().getDbFile(pid.getTableId());           
+            Page p = dbFile.readPage(pid);
+            
+            if (pages.size() == numPages) {
+                evictPage();
+            }            
+            pages.put(pid, p);
+            return p;
+        }
     }
 
     /**

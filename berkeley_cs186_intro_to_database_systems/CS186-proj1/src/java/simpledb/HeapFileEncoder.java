@@ -51,8 +51,8 @@ public class HeapFileEncoder {
       convert(tempInput, outFile, npagebytes, numFields);
   }
 
-      public static void convert(File inFile, File outFile, int npagebytes,
-                 int numFields) throws IOException {
+  public static void convert(File inFile, File outFile, int npagebytes,
+      int numFields) throws IOException {
       Type[] ts = new Type[numFields];
       for (int i = 0; i < ts.length; i++) {
           ts[i] = Type.INT_TYPE;

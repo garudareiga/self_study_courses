@@ -14,9 +14,9 @@ import java.util.*;
  * @author Sam Madden
  */
 public class HeapFile implements DbFile {
-    private File f;
-    private TupleDesc td;
-    HashMap<PageId, Page> pages;
+    
+    private File f = null;
+    private TupleDesc td = null;
     
     /**
      * Constructs a heap file backed by the specified file.
@@ -72,7 +72,27 @@ public class HeapFile implements DbFile {
     public Page readPage(PageId pid) {
         // some code goes here
         //return null;
-        return pages.get(pid);
+        
+        HeapPage p = null;
+        if (pid.getTableId() == getId()) {
+            long offset = pid.pageNumber()*BufferPool.PAGE_SIZE;
+            byte[] bytes = new byte[BufferPool.PAGE_SIZE];
+            
+            try {
+                RandomAccessFile raf = new RandomAccessFile(f, "r");
+                raf.seek(offset);
+                raf.read(bytes);
+                raf.close();
+                
+                HeapPageId hpid = new HeapPageId(getId(), pid.pageNumber());
+                p = new HeapPage(hpid, bytes);
+                
+            } catch (IOException e) {
+                //throw new DbException("IOException");
+                e.printStackTrace();
+            }
+        }
+        return p;
     }
 
     // see DbFile.java for javadocs
@@ -87,7 +107,7 @@ public class HeapFile implements DbFile {
     public int numPages() {
         // some code goes here
         //return 0;
-        return pages.size();
+        return (int) Math.floor(f.length()/BufferPool.PAGE_SIZE);
     }
 
     // see DbFile.java for javadocs
@@ -109,7 +129,8 @@ public class HeapFile implements DbFile {
     // see DbFile.java for javadocs
     public DbFileIterator iterator(TransactionId tid) {
         // some code goes here
-        return null;
+        //return null;
+        return new HeapFileIterator(this, tid);
     }
 
 }
