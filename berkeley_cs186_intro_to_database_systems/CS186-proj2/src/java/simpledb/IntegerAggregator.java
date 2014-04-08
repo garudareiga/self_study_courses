@@ -61,7 +61,7 @@ public class IntegerAggregator implements Aggregator {
             typeArr = new Type[1];
             typeArr[0] = Type.INT_TYPE;
         } else {
-            typeArr = new Type[1];
+            typeArr = new Type[2];
             typeArr[0] = gbfieldtype;
             typeArr[1] = Type.INT_TYPE;
         }
@@ -183,7 +183,7 @@ public class IntegerAggregator implements Aggregator {
                 tuples.add(t);
             }
         }
-    
+        
         return new TupleIterator(td, tuples);
     }
 }
