@@ -15,6 +15,7 @@ import java.util.*;
 public class BufferPool {
     // Add by Ray
     private int numPages = DEFAULT_PAGES;
+    private LinkedList<PageId> orderedPageIds = new LinkedList<PageId>(); 
     private HashMap<PageId, Page> pages = new HashMap<PageId, Page>();
     
     /** Bytes per page, including header. */
@@ -63,6 +64,7 @@ public class BufferPool {
             if (pages.size() == numPages) {
                 evictPage();
             }            
+            orderedPageIds.addLast(pid);
             pages.put(pid, p);
             return p;
         }
@@ -170,7 +172,9 @@ public class BufferPool {
     public synchronized void flushAllPages() throws IOException {
         // some code goes here
         // not necessary for proj1
-
+        for (PageId pid : orderedPageIds) {
+            flushPage(pid);
+        }
     }
 
     /** Remove the specific page id from the buffer pool.
@@ -180,7 +184,9 @@ public class BufferPool {
     */
     public synchronized void discardPage(PageId pid) {
         // some code goes here
-	// not necessary for proj1
+        // not necessary for proj1
+        orderedPageIds.remove(pid);
+        pages.remove(pid);
     }
 
     /**
@@ -190,6 +196,8 @@ public class BufferPool {
     private synchronized  void flushPage(PageId pid) throws IOException {
         // some code goes here
         // not necessary for proj1
+        DbFile dbfile = Database.getCatalog().getDbFile(pid.getTableId());
+        dbfile.writePage(pages.get(pid));
     }
 
     /** Write all pages of the specified transaction to disk.
@@ -206,6 +214,18 @@ public class BufferPool {
     private synchronized  void evictPage() throws DbException {
         // some code goes here
         // not necessary for proj1
+        // FIFO Policy
+        PageId evictPageId = orderedPageIds.pollFirst();
+        Page evictPage = pages.get(evictPageId);
+        if (evictPage.isDirty() != null) {
+            try {
+                flushPage(evictPageId);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        pages.remove(evictPageId);
     }
 
 }
