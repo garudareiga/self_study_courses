@@ -109,7 +109,7 @@ public class JoinTest extends SimpleDbTestBase {
    * JUnit suite target
    */
   public static junit.framework.Test suite() {
-    return new JUnit4TestAdapter(JoinTest.class);
+    return new JUnit4TestAdapter(JoinFilterTest.class);
   }
 }
 

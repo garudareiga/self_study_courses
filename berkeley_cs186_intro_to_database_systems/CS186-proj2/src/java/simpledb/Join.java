@@ -132,7 +132,7 @@ public class Join extends Operator {
                 return fetchNext();
             }
             
-            System.out.println("Join:\n" + t1.toString() + t2.toString());
+            //System.out.println("Join:\n" + t1.toString() + t2.toString());
             
             if (p.filter(t1, t2)) {
                 Tuple t = new Tuple(getTupleDesc());
