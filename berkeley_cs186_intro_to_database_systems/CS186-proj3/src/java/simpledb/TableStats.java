@@ -66,6 +66,12 @@ public class TableStats {
      */
     static final int NUM_HIST_BINS = 100;
 
+    // Add by Ray
+    int tableid;
+    int ioCostPerPage;
+    HeapFile f = null;
+    int numTuples = 0;
+    
     /**
      * Create a new TableStats object, that keeps track of statistics on each
      * column of a table
@@ -85,6 +91,11 @@ public class TableStats {
         // necessarily have to (for example) do everything
         // in a single scan of the table.
         // some code goes here
+        this.tableid = tableid;
+        this.ioCostPerPage = ioCostPerPage;
+        
+        // Scan through its tuples and calculate
+        f = (HeapFile) Database.getCatalog().getDbFile(tableid);
     }
 
     /**
@@ -101,7 +112,8 @@ public class TableStats {
      */
     public double estimateScanCost() {
         // some code goes here
-        return 0;
+        //return 0;
+        return (double)(f.numPages()*ioCostPerPage);
     }
 
     /**
@@ -115,7 +127,8 @@ public class TableStats {
      */
     public int estimateTableCardinality(double selectivityFactor) {
         // some code goes here
-        return 0;
+        //return 0;
+        return (int)(numTuples*selectivityFactor);
     }
 
     /**
@@ -156,7 +169,8 @@ public class TableStats {
      * */
     public int totalTuples() {
         // some code goes here
-        return 0;
+        //return 0;
+        return numTuples;
     }
 
 }

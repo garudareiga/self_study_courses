@@ -1,9 +1,18 @@
 package simpledb;
 
+import java.util.*;
+
 /** A class to represent a fixed-width histogram over a single integer-based field.
  */
 public class IntHistogram {
-
+    // Add by Ray
+    int buckets;
+    int min;
+    int max;
+    int[] bucketHeights;
+    double bucketWidth = 0.0;
+    int numTuples = 0;
+    
     /**
      * Create a new IntHistogram.
      * 
@@ -22,6 +31,13 @@ public class IntHistogram {
      */
     public IntHistogram(int buckets, int min, int max) {
     	// some code goes here
+        this.buckets = buckets;
+        this.min = min;
+        this.max = max;
+        bucketHeights = new int[buckets];
+        bucketWidth = (double)(max - min + 1)/buckets;
+        
+        System.out.println(toString());
     }
 
     /**
@@ -30,6 +46,9 @@ public class IntHistogram {
      */
     public void addValue(int v) {
     	// some code goes here
+        int bucketIndex = (int)((v - min)/bucketWidth);
+        bucketHeights[bucketIndex] += 1;
+        numTuples++;
     }
 
     /**
@@ -45,7 +64,49 @@ public class IntHistogram {
     public double estimateSelectivity(Predicate.Op op, int v) {
 
     	// some code goes here
-        return -1.0;
+        //return -1.0;
+        double selectivity = 0.0;
+        if (op == Predicate.Op.EQUALS || op == Predicate.Op.NOT_EQUALS) {
+            int bucketIndex = (int)((v - min)/bucketWidth);
+            selectivity = (double)bucketHeights[bucketIndex]/bucketWidth;
+            if (op == Predicate.Op.NOT_EQUALS)
+                selectivity = numTuples - selectivity;
+        }
+        else if (op == Predicate.Op.GREATER_THAN || op == Predicate.Op.GREATER_THAN_OR_EQ) {
+            if (v < min)
+                return 1.0;
+            if (v > max)
+                return 0.0;
+            int bucketIndex = (int)((v - min)/bucketWidth);
+            int width = min + (int)(bucketWidth*(bucketIndex + 1)) - v;
+            if (op == Predicate.Op.GREATER_THAN)
+                width -= bucketWidth;
+            if (width > 0.0)
+                selectivity = ((double)bucketHeights[bucketIndex])/width;
+            
+            for (int i = bucketIndex + 1; i < bucketHeights.length; i++) {
+                selectivity += bucketHeights[i];
+            }
+        }
+        else if (op == Predicate.Op.LESS_THAN || op == Predicate.Op.LESS_THAN_OR_EQ) {
+            if (v < min)
+                return 0.0;
+            if (v > max)
+                return 1.0;
+            int bucketIndex = (int)((v - min)/bucketWidth);
+            int width = v - (int)((min + bucketWidth*bucketIndex));
+            if (op == Predicate.Op.LESS_THAN_OR_EQ)
+                width += bucketWidth;
+            if (width > 0.0)
+                selectivity = ((double)bucketHeights[bucketIndex])/width;
+            
+            for (int i = 0; i < bucketIndex; i++) {
+                selectivity += bucketHeights[i];
+             }
+        }
+        selectivity /= numTuples;
+        System.out.println("Selectivity=" + selectivity);
+        return selectivity;
     }
     
     /**
@@ -68,6 +129,10 @@ public class IntHistogram {
     public String toString() {
 
         // some code goes here
-        return null;
+        //return null;
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("Min=%d, Max=%d, Buckets=%d, Width=%f", 
+                min, max, buckets, bucketWidth));
+        return sb.toString();
     }
 }
