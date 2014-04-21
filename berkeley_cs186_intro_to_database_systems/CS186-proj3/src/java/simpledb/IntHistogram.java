@@ -36,8 +36,6 @@ public class IntHistogram {
         this.max = max;
         bucketHeights = new int[buckets];
         bucketWidth = (double)(max - min + 1)/buckets;
-        
-        System.out.println(toString());
     }
 
     /**
@@ -67,45 +65,36 @@ public class IntHistogram {
         //return -1.0;
         double selectivity = 0.0;
         if (op == Predicate.Op.EQUALS || op == Predicate.Op.NOT_EQUALS) {
+            if (op == Predicate.Op.EQUALS && (v < min || v > max))
+                return 0.0;
+            if (op == Predicate.Op.NOT_EQUALS && (v < min || v > max))
+                return 1.0;
             int bucketIndex = (int)((v - min)/bucketWidth);
-            selectivity = (double)bucketHeights[bucketIndex]/bucketWidth;
+            selectivity = (double)bucketHeights[bucketIndex];
             if (op == Predicate.Op.NOT_EQUALS)
                 selectivity = numTuples - selectivity;
         }
         else if (op == Predicate.Op.GREATER_THAN || op == Predicate.Op.GREATER_THAN_OR_EQ) {
-            if (v < min)
+            if (v <= min)
                 return 1.0;
-            if (v > max)
+            if (v >= max)
                 return 0.0;
             int bucketIndex = (int)((v - min)/bucketWidth);
-            int width = min + (int)(bucketWidth*(bucketIndex + 1)) - v;
-            if (op == Predicate.Op.GREATER_THAN)
-                width -= bucketWidth;
-            if (width > 0.0)
-                selectivity = ((double)bucketHeights[bucketIndex])/width;
-            
-            for (int i = bucketIndex + 1; i < bucketHeights.length; i++) {
+            for (int i = bucketIndex; i < bucketHeights.length; i++) {
                 selectivity += bucketHeights[i];
             }
         }
         else if (op == Predicate.Op.LESS_THAN || op == Predicate.Op.LESS_THAN_OR_EQ) {
-            if (v < min)
+            if (v <= min)
                 return 0.0;
-            if (v > max)
+            if (v >= max)
                 return 1.0;
-            int bucketIndex = (int)((v - min)/bucketWidth);
-            int width = v - (int)((min + bucketWidth*bucketIndex));
-            if (op == Predicate.Op.LESS_THAN_OR_EQ)
-                width += bucketWidth;
-            if (width > 0.0)
-                selectivity = ((double)bucketHeights[bucketIndex])/width;
-            
-            for (int i = 0; i < bucketIndex; i++) {
+            int bucketIndex = (int)((v - min)/bucketWidth);            
+            for (int i = 0; i <= bucketIndex; i++) {
                 selectivity += bucketHeights[i];
              }
         }
         selectivity /= numTuples;
-        System.out.println("Selectivity=" + selectivity);
         return selectivity;
     }
     
@@ -120,7 +109,11 @@ public class IntHistogram {
     public double avgSelectivity()
     {
         // some code goes here
-        return 1.0;
+        double avgHeight = 0.0;
+        for (int i = 0; i < bucketHeights.length; i++)
+            avgHeight += bucketHeights[i];
+        avgHeight /= buckets;
+        return avgHeight/numTuples;
     }
     
     /**

@@ -1,8 +1,6 @@
 package simpledb;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -69,7 +67,9 @@ public class TableStats {
     // Add by Ray
     int tableid;
     int ioCostPerPage;
+    TupleDesc td = null;
     HeapFile f = null;
+    ArrayList<Object> histograms = new ArrayList<>();
     int numTuples = 0;
     
     /**
@@ -93,9 +93,67 @@ public class TableStats {
         // some code goes here
         this.tableid = tableid;
         this.ioCostPerPage = ioCostPerPage;
-        
+        this.td = Database.getCatalog().getTupleDesc(tableid);
+
         // Scan through its tuples and calculate
-        f = (HeapFile) Database.getCatalog().getDbFile(tableid);
+        TransactionId tid = new TransactionId();
+        f = (HeapFile)Database.getCatalog().getDbFile(tableid);
+        
+        IntField[] minValues = new IntField[td.numFields()];
+        IntField[] maxValues = new IntField[td.numFields()];
+        ArrayList<ArrayList<Field>> fields = new ArrayList<ArrayList<Field>>();
+        
+        DbFileIterator it = f.iterator(tid);
+        try {
+            it.open();
+            while (it.hasNext()) {
+                Tuple t = it.next();
+                numTuples++;
+                
+                ArrayList<Field> fdList = new ArrayList<Field>();
+                fields.add(fdList);
+                
+                for (int i = 0; i < td.numFields(); i++) {
+                    Field fd = t.getField(i);
+                    fdList.add(fd);
+                    if (fd.getType() == Type.INT_TYPE) {
+                        if (minValues[i] == null) {
+                            minValues[i] = (IntField)fd;
+                            maxValues[i] = (IntField)fd;
+                        } else {
+                            if (fd.compare(Predicate.Op.LESS_THAN, minValues[i])) {
+                                minValues[i] = (IntField)fd;
+                            }
+                            if (fd.compare(Predicate.Op.GREATER_THAN, maxValues[i])) {
+                                maxValues[i] = (IntField)fd;
+                            }
+                        }
+                    }
+                }
+            }
+            it.close();
+        } catch (DbException | TransactionAbortedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+        for (int i = 0; i < td.numFields(); i++) {
+            if (td.getFieldType(i) == Type.INT_TYPE)
+                histograms.add(new IntHistogram(NUM_HIST_BINS, ((IntField)minValues[i]).getValue(), 
+                        ((IntField)maxValues[i]).getValue()));
+            else
+                histograms.add(new StringHistogram(NUM_HIST_BINS));
+        }
+        for (ArrayList<Field> fdList : fields) {
+            for (int i = 0; i < td.numFields(); i++) {
+                Field fd = fdList.get(i);
+                if (fd.getType() == Type.INT_TYPE) {
+                    ((IntHistogram)histograms.get(i)).addValue(((IntField)fd).getValue());
+                } else {
+                    ((StringHistogram)histograms.get(i)).addValue(((StringField)fd).getValue());
+                }
+            }
+        }
     }
 
     /**
@@ -143,7 +201,12 @@ public class TableStats {
      * */
     public double avgSelectivity(int field, Predicate.Op op) {
         // some code goes here
-        return 1.0;
+        //return 1.0;
+        if (td.getFieldType(field) == Type.INT_TYPE) {
+            return ((IntHistogram)histograms.get(field)).avgSelectivity();
+        } else {
+            return ((StringHistogram)histograms.get(field)).avgSelectivity();
+        }
     }
 
     /**
@@ -161,7 +224,12 @@ public class TableStats {
      */
     public double estimateSelectivity(int field, Predicate.Op op, Field constant) {
         // some code goes here
-        return 1.0;
+        //return 1.0;
+        if (td.getFieldType(field) == Type.INT_TYPE) {
+            return ((IntHistogram)histograms.get(field)).estimateSelectivity(op, ((IntField)constant).getValue());
+        } else {
+            return ((StringHistogram)histograms.get(field)).estimateSelectivity(op, ((StringField)constant).getValue());
+        }
     }
 
     /**
