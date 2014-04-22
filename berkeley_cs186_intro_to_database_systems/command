@@ -25,3 +25,13 @@ ant handin                          Generate tarball for submission
    $ ant
 5. Run the test case 
    $ java -classpath dist/simpledb.jar simpledb.test
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+// Query Parser 
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+1. Create ParserTest.dat
+   $ java -jar dist/simpledb.jar convert ParserTest.txt 2 "int,int"
+2. Create a catalog file catalog.txt
+   $ java -jar dist/simpledb.jar parser catalog.txt
+   
