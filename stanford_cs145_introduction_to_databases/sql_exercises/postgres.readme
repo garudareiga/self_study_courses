@@ -1,0 +1,140 @@
+##### psql
+
+# psql is a terminal-based front-end to PostgreSQL.
+
+##### PostgreSQL Ubuntu documentation
+https://help.ubuntu.com/community/PostgreSQL
+
+##### Open postgres terminal
+
+# When PostgresSQL is first installed on a server, the default
+# postgres user is named "postgres".
+
+    $ sudo -u postgres psql postgres
+
+# By default in Ubuntu, Postgresql is configured to use 'ident sameuser'
+# authentication for any connections from the same machine.
+
+    $ sudo -u postgres createuser --superuser ray
+    $ sudo -u postgres psql
+
+# Client programs, by default, connect to the local host using your
+# Ubuntu login name and expect to find a database with that name too.
+# Create a database with the same name as your login name:
+
+    $ sudo -u postgres createdb ray
+    $ psql
+
+# exit
+    
+    postgres=# \q
+    
+##### Using pgAdmin3 GUI
+
+    $ pgadmin3
+
+##### Meta-Commands
+
+# Anything you enter in psql that begins with an unquoted backslash
+# is a psql meta-command that is processed by psql itself.
+
+\l : Show databases
+\d : Show tables
+\d <table> : Show columns
+\d+ <table> : Describe table
+Ctrl + l : Clear the screen
+
+\i <path>/<fname>.sql : load a sql file
+
+##### SQL
+# Cross product
+1)
+select * from Student, College;
+
+2)
+select * 
+from (select sname from Student 
+      union
+      select cname from College) as name
+order by name;
+
+select sname as name from Student
+union
+select cname as name from College
+order by name;
+
+select sname as name from Student
+union all
+select cname as name from College;
+
+select sid from Apply where major = 'CS'
+intersect
+select sid from Apply where major = 'EE';
+
+select sid from Apply where major = 'CS'
+except
+select sid from Apply where major = 'EE';
+
+3)
+select avg(gpa)
+from Student
+where sid in (select sid from Apply where major = 'CS');
+
+select cname, state
+from College C1
+where exists (select * from College C2
+              where C2.state = C1.state and C2.cname <> C1.cname);
+
+4)
+select sname, gpa
+from Student
+where gpa >= all (select gpa from Student);
+
+select cname
+from College C1
+where not enrollment <= any (select enrollment from College C2 
+                             where C2.cname <> C1.cname);
+
+5)
+select *
+from (select sid, sname, gpa, gpa*(sizehs/1000.0) as scaledGPA
+      from Student) G
+where abs(scaledGPA - gpa) > 1.0;
+
+6)
+select distinct cname, state,
+  (select distinct gpa
+   from Apply, Student
+   where College.cname = Apply.cname
+     and Student.sid = Apply.sid
+     and gpa >= all
+       (select gpa from Student, Apply
+        where Student.sid = Apply.sid
+          and Apply.cname = College.cname)) as gpa
+from College;
+
+### Aggregation
+1)
+select count(distinct sid)
+from Apply
+where cname = 'Cornell';
+
+2)
+select cname, major, min(gpa), max(gpa)
+from Student, Apply
+where Student.sid = Apply.sid
+group by cname, major;
+
+3)
+select cname
+from Apply
+group by cname
+having count(distinct sid) < 5;
+
+### Join
+1)
+select sname, gpa
+from Student join Apply using(sid)
+where sizehs < 1000;
+
+

@@ -1,0 +1,29 @@
+SQLite
+======
+
+SQLite starter script: sqlite-start.sql
+
+To execute a SQL file from the command-line shell:
+    
+    sqlite> .read sqlite-start.sql
+
+To exit the program:
+
+    sqlite> .exit
+
+To save the database state between sessions:
+
+    $ sqlite3 <file_name>.db
+    sqlite> .read sqlite-state.sql
+
+To load the database
+
+    $ sqlite3 sample-db
+    sqlite> .tables
+    Eats       Frequents  Person     Serves
+    sqlite> select * from Eats;
+
+Command Line Shell For SQLite
+http://www.sqlite.org/sqlite.html
+
+
